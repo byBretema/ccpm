@@ -1,10 +1,6 @@
 # 📦 YACPM - Yet Another Cmake Package Manager
 
-<br>
-<div style="width:15%; margin: auto;">
-<img src="https://i.imgur.com/IfpQbir.png"/>
-</div>
-<br>
+![YACPM Logo](https://i.imgur.com/A2KPcdK.jpeg)
 
 Are you tired of watching time fade away as CMake recompiles Assimp for the sixth time today just because you had to do a rebuild of your own code?
 
