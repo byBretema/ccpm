@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 3.25)
+
+# Project
+project(Liora
+    LANGUAGES CXX
+    VERSION 0.1.0
+    DESCRIPTION "Liora - A friendly render engine"
+    HOMEPAGE_URL "https://github.com/byBretema/Liora")
+
+
+# Must compile with C++20, no extensions
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
+# Build type
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+# Exe
+add_executable(main main.cpp)
+
+# Dependencies
+include(_yacpm/yacpm.cmake)
+target_link_libraries(main PRIVATE ${YACPM_LINK_LIBRARIES})
