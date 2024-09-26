@@ -3,6 +3,7 @@ import os
 import sys
 import toml
 import shutil
+from urllib.parse import urlparse
 
 PREFIX = "yacpm"
 HOME_DIR = os.path.expanduser("~").replace('\\', '/')
@@ -17,25 +18,39 @@ PACKAGES_PATHS = set()
 def invalid_folder(path):
     return (not os.path.exists(path)) or (not os.listdir(path))
 
-def run_command(command, cwd=None):
+def run_command(command, cwd=None, quiet=False):
     """Run a system command in a subprocess."""
-    cmd = ' '.join(command).replace(SCRIPT_DIR, ".").replace(HOME_DIR, "~")
-    cwd_str = cwd.replace(SCRIPT_DIR, ".").replace(HOME_DIR, "~") if cwd else '.'
-    print(f'[>] Running command: "{cmd}" @ "{cwd_str}"')
+    # cmd_display = ' '.join(command).replace(SCRIPT_DIR, ".").replace(HOME_DIR, "~")
+    # cwd_display = cwd.replace(SCRIPT_DIR, ".").replace(HOME_DIR, "~") if cwd else '.'
+    # print(f'[>] Running command: "{cmd_display}" @ "{cwd_display}"')
     try:
-        subprocess.check_call(command, cwd=cwd)
+        if quiet:
+            subprocess.check_call(command, stdout=subprocess.DEVNULL, cwd=cwd)
+        else:
+            subprocess.check_call(command, cwd=cwd)
     except subprocess.CalledProcessError as e:
-        print(f'Error: Command "{cmd}" exited with code {e.returncode}')
+        # print(f'Error: Command "{cmd_display}" exited with code {e.returncode}')
+        print(f'Error: On last command, exited with code {e.returncode}')
         sys.exit(e.returncode)
 
+def extract_repo_name(repo_url):
+    path = ""
+    # Is http[s] url
+    if repo_url.startswith('http://') or repo_url.startswith('https://'):
+        parsed_url = urlparse(repo_url)
+        path = parsed_url.path.lstrip('/')
+    # Is ssh url
+    else:
+        path = repo_url.split(':', 1)[1]
+    # Remove.git if present
+    if path.endswith('.git'):
+        path = path[:-4]
+    return path
 
-def process_package(repo_name, tag, defines, ssh):
+def process_package(repo_url, tag, defines):
 
     # Folders
-    if ssh:
-        repo_url = f'git@github.com:{repo_name}.git'
-    else:
-        repo_url = f'https://github.com/{repo_name}.git'
+    repo_name = extract_repo_name(repo_url)
 
     project_name = repo_name.split('/')[-1]
     PACKAGES_NAMES.add(project_name)
@@ -47,7 +62,7 @@ def process_package(repo_name, tag, defines, ssh):
     install_dir = f'{INSTALL_DIR_PREFIX}/{project_and_tag}'
     PACKAGES_PATHS.add(install_dir)
 
-    print(f'\n>>> Processing "{project_and_tag}" <<<')
+    print(f'\n[{PREFIX.upper()}] :: {project_and_tag} : {" ".join(defines)}')
 
     # Step 2: Check if the repository and tag combination is cloned or clone it
     if invalid_folder(source_dir):
@@ -55,8 +70,6 @@ def process_package(repo_name, tag, defines, ssh):
         print(f'[+] Cloning repository {repo_url} at tag {tag} into {source_dir}')
         clone_cmd = ['git', 'clone', repo_url, '--branch', tag, '--depth', '1', source_dir]
         run_command(clone_cmd)
-    else:
-        print(f'[!] Source code already exists. Skipping clone step. ({source_dir})')
 
     if not invalid_folder(install_dir):
         shutil.rmtree(install_dir)
@@ -79,13 +92,11 @@ def process_package(repo_name, tag, defines, ssh):
             print('[++] Running build step')
             build_cmd = ['cmake', '--build', '.', '-j', '16','--config', build_type]
             run_command(build_cmd, cwd=build_dir_type)
-        else:
-            print(f'[!] Build directory already exists. Skipping build step. ({build_dir_type})')
 
         # Step 4: Install the project
         print(f'[+] Installing for :: {build_type}')
         install_cmd = ['cmake', '--install', '.', '--config', build_type, '--prefix', install_dir]
-        run_command(install_cmd, cwd=build_dir_type)
+        run_command(install_cmd, cwd=build_dir_type, quiet=True)
 
 def process_toml():
     # Load packages from TOML file
@@ -107,23 +118,19 @@ def process_toml():
         sys.exit(1)
 
     for pkg in git_pkgs:
-        repo_name = pkg.get('repo_name')
+        repo_url = pkg.get('repo_url')
         tag = pkg.get('tag')
         defines = pkg.get('defines', [])
 
-        if not repo_name or not tag:
-            print("Package definition must include 'repo_name' and 'tag'.")
+        if not repo_url or not tag:
+            print("Package definition must include 'repo_url' and 'tag'.")
             continue
 
         # Prepare defines
         cmake_defines = [f"-D{define}" for define in defines]
 
         # Process the package
-        print(f'\n\n-----> {PREFIX.upper()} :: {repo_name} / {tag} / {cmake_defines}')
-        #try: # First try by 'ssh'
-        #    process_package(repo_name, tag, cmake_defines, True)
-        #except: # Otherwise 'http' - this may trigger the credential manager
-        process_package(repo_name, tag, cmake_defines, False)
+        process_package(repo_url, tag, cmake_defines)
 
 def gen_cmake_script():
 
@@ -159,19 +166,9 @@ def gen_cmake_script():
             to_link_libraries.add(f"{pkg_name}::{pkg_name}")
     cmake_script += f"list(APPEND YACPM_LINK_LIBRARIES {' '.join(to_link_libraries)})\n"
 
-
     os.makedirs(f"{INSTALL_DIR_PREFIX}", exist_ok=True)
     with open(output_file, "w") as f:
         f.write(cmake_script)
-#         f.write('''
-# set(YACPM_DIR "${CMAKE_SOURCE_DIR}/_yacpm")
-# file(GLOB YACPM_DEPS RELATIVE "${YACPM_DIR}" "${YACPM_DIR}/*")
-# foreach(YACPM_DEP ${YACPM_DEPS})
-#     if(IS_DIRECTORY "${YACPM_DIR}/${YACPM_DEP}")
-#         set(CMAKE_PREFIX_PATH "${YACPM_DIR}/${YACPM_DEP}" ${CMAKE_PREFIX_PATH})
-#     endif()
-# endforeach()
-# ''')
 
 def main():
     process_toml()
@@ -180,6 +177,7 @@ def main():
 if __name__ == '__main__':
     try:
         main()
+        print()
     except KeyboardInterrupt:
         exit(1)
     except:

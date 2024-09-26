@@ -28,12 +28,12 @@ No worries, we’ve got the solution right here!
 Create a simple `yacpm_packages.toml` similar to this one
 ```toml
 [[git]]
-repo_name = "fmtlib/fmt"
+repo_url = "https://github.com/fmtlib/fmt"
 tag = "11.0.2"
 defines = ["FMT_TEST=OFF", "FMT_DOC=OFF"]
 
 [[git]]
-repo_name = "glfw/glfw"
+repo_url = "https://github.com/glfw/glfw"
 tag = "3.4"
 defines = [
     "GLFW_BUILD_DOCS=OFF",
@@ -42,9 +42,10 @@ defines = [
 ]
 
 [[git]]
-repo_name = "g-truc/glm"
+repo_url = "https://github.com/g-truc/glm"
 tag = "1.0.1"
 defines = ["GLM_BUILD_TESTS=OFF", "GLM_ENABLE_CXX_20=ON"]
+
 ```
 
 ### Donwload, Build and Install packages
@@ -78,6 +79,6 @@ This script assumes that you have the following commands installed:
 - git
 
 In the roadmap:
-- [ ] Other *git* providers (**it's github only right now, just for tool validation**)
+- [x] Other *git* providers (**the first iteration was github only**)
 - [ ] Others VCS like *SVN* or *Hg*
 - [ ] Zip files
