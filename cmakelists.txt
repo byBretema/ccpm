@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 # Project
-project(Liora
+project(YACPM_Example
     LANGUAGES CXX
     VERSION 0.1.0
     DESCRIPTION "YACPM - Yet Another Cmake Package Manager"
@@ -21,8 +21,8 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Target
-add_executable(main main.cpp)
+add_executable(${PROJECT_NAME} main.cpp)
 
 # Dependencies
 include(_yacpm/yacpm.cmake)
-target_link_libraries(main PRIVATE ${YACPM_LINK_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${YACPM_LINK_LIBRARIES})
