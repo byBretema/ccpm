@@ -1,4 +1,10 @@
-# YACPM - Yet Another Cmake Package Manager
+# 📦 YACPM - Yet Another Cmake Package Manager
+
+<br>
+<div style="width:15%; margin: auto;">
+<img src="https://i.imgur.com/IfpQbir.png"/>
+</div>
+<br>
 
 Are you tired of watching time fade away as CMake recompiles Assimp for the sixth time today just because you had to do a rebuild of your own code?
 
@@ -18,9 +24,12 @@ No worries, we’ve got the solution right here!
 ### Define your dependencies
 
 > The below example will install fmt, glfw and glm with your custom defines.
+
 > Right now it requires a tag in order to not fall in the trap of use a development version of a lib.
+
 > I'm open to reconsider that "desing decission" if someone expose me good reasons for it 😅.
 
+Create a simple `yacpm_packages.toml` similar to this one
 ```toml
 [[git]]
 repo_name = "fmtlib/fmt"
