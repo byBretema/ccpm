@@ -16,7 +16,7 @@
 
 int main()
 {
-    fmt::println("Vec2.x {}", glm::vec2(2, 3).x);
-    fmt::println("Vec3.y {}", glm::vec3(1, 3.2345, 4).y);
-    fmt::println("Vec4   {}", glm::to_string(glm::vec4(1, 3.2345f, 4, .25f)));
+    fmt::println("Vec2.x | {}", glm::vec2(2, 3).x);
+    fmt::println("Vec3.y | {}", glm::vec3(1, 3.2345, 4).y);
+    fmt::println("Vec4   | {}", glm::to_string(glm::vec4(1, 3.2345f, 4, .25f)));
 }
