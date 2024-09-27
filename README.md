@@ -46,7 +46,7 @@ defines = ["GLM_BUILD_TESTS=OFF", "GLM_ENABLE_CXX_20=ON"]
 ```bash
 # Requires the toml package : pip install toml
 # Launch each time you modify the 'yacpm.toml'
-python ./yacpm.py -i
+python ./yacpm.py . -i
 ```
 
 ### ✍️ On your CMake
@@ -61,7 +61,7 @@ target_link_libraries(${YOUR_AWESOME_TARGET} PRIVATE ${YACPM_LINK_LIBRARIES})
 
 ```bash
 # Opt1 - Just run the script with '-b <build_type>'
-python ./yacpm.py -b 'Release'
+python ./yacpm.py . -b 'Release'
 
 # Opt2 - manually if the process is complex than this
 mkdir build
