@@ -55,7 +55,6 @@ def process_package(repo_url, tag, defines):
     build_dir   = f'{BUILD_DIR_PREFIX}/{project_and_tag}/build'
 
     install_dir = f'{INSTALL_DIR_PREFIX}/{project_and_tag}'
-    print(f"aaaaaaaaaa :: {install_dir} + {ROOT_DIR}")
     PACKAGES_PATHS.add(install_dir)
 
     print(f'\n[{PREFIX.upper()}] :: {project_and_tag} : {" ".join(defines)}')

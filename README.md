@@ -80,9 +80,10 @@ cmake --build . -j 16 --config Release
 #### In the roadmap:
 
 - [x] Other *git* providers [^1]
-- [ ] Others VCS like *SVN* or *Hg*
-- [ ] Zip files
+- [ ] Add option to choose CMake Generator
 - [ ] Automatic lib name and target gathering [^2]
+- [ ] Zip files
+- [ ] Others VCS like *SVN* or *Hg*
 
 #### Open to discussion:
 
