@@ -3,6 +3,7 @@ import os
 import sys
 import toml
 import shutil
+import argparse
 from urllib.parse import urlparse
 
 PREFIX = "yacpm"
@@ -10,7 +11,7 @@ HOME_DIR = os.path.expanduser("~").replace('\\', '/')
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__)).replace('\\', '/')
 
 BUILD_DIR_PREFIX = f'{HOME_DIR}/.{PREFIX}'
-INSTALL_DIR_PREFIX = f'{SCRIPT_DIR}/_{PREFIX}'
+INSTALL_DIR_PREFIX = f'{SCRIPT_DIR}/.{PREFIX}'
 
 PACKAGES_NAMES = set()
 PACKAGES_PATHS = set()
@@ -100,7 +101,7 @@ def process_package(repo_url, tag, defines):
 
 def process_toml():
     # Load packages from TOML file
-    toml_file = f'{SCRIPT_DIR}/yacpm_packages.toml'
+    toml_file = f'{SCRIPT_DIR}/yacpm.toml'
     if not os.path.exists(toml_file):
         print(f'Error: TOML file "{toml_file}" not found.')
         sys.exit(1)
@@ -170,15 +171,60 @@ def gen_cmake_script():
     with open(output_file, "w") as f:
         f.write(cmake_script)
 
-def main():
+def get_dependencies():
     process_toml()
     gen_cmake_script()
 
+def do_project_build(project_build_dir, build_type):
+    print('[YACPM] :: Building current project')
+    run_command(['cmake', '-B', project_build_dir, f'-DCMAKE_BUILD_TYPE={build_type}'])
+    run_command(['cmake', '--build', project_build_dir, '-j', '16', '--config', build_type])
+
 if __name__ == '__main__':
     try:
-        main()
-        print()
-    except KeyboardInterrupt:
-        exit(1)
+
+        # ARGS ################################################################
+
+        # Define arguments
+        parser = argparse.ArgumentParser(description='Manage your Cmake project')
+        parser.add_argument('-c', '--clear', action='store_true', default=False, help='Clear build and external dependencies')
+        parser.add_argument('-i', '--install', action='store_true', default=False, help='Install dependencies (not needed if you don\'t change the TOML)')
+        parser.add_argument('-b', '--build-type', type=str, default="", help='Specify build type: Debug or Release (case-insensitive)')
+        # Parse arguments
+        args = parser.parse_args()
+        # Process 'clear'
+        a_clear = args.clear
+        ## Process 'install'
+        a_install = args.install
+        # Process 'build_type' to be case-insensitive and validate it
+        a_build_type = args.build_type
+        if a_build_type.lower() not in ["", "debug", "release"]:
+            parser.error("Invalid build type specified. Must be 'Debug' or 'Release' (case-insensitive)")
+
+        project_build_dir = f'{SCRIPT_DIR}/build'
+
+        # CLEAR ALL ###########################################################
+
+        # Deps
+        if a_clear and not invalid_folder(INSTALL_DIR_PREFIX):
+            shutil.rmtree(INSTALL_DIR_PREFIX)
+
+        # Build
+        if a_clear and not invalid_folder(project_build_dir):
+            shutil.rmtree(project_build_dir)
+
+
+        # INSTALL DEPS ########################################################
+
+        if a_install:
+            get_dependencies()
+            print()
+
+        # BUILD CURRENT PROJECT ###############################################
+
+        if a_build_type != "":
+            do_project_build(project_build_dir, a_build_type)
+            print()
+
     except:
-        exit(2)
+        exit(-1)

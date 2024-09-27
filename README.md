@@ -4,7 +4,7 @@
 
 Are you tired of watching time fade away as CMake recompiles Assimp for the sixth time today just because you had to do a rebuild of your own code?
 
-Have you find yourself writing below code manully?
+Have you find yourself writing below code manually?
 ```cmake
 add_subdirectory(third_party/fmt)
 find_package(fmt REQUIRED)
@@ -25,7 +25,7 @@ No worries, we’ve got the solution right here!
 
 > I'm open to reconsider that "desing decission" if someone expose me good reasons for it 😅.
 
-Create a simple `yacpm_packages.toml` similar to this one
+Create a simple `yacpm.toml` similar to this one
 ```toml
 [[git]]
 repo_url = "https://github.com/fmtlib/fmt"
@@ -51,25 +51,26 @@ defines = ["GLM_BUILD_TESTS=OFF", "GLM_ENABLE_CXX_20=ON"]
 ### Donwload, Build and Install packages
 ```bash
 # Requires the toml package : pip install toml
-# Launch each time you modify the 'yacpm_packages.toml'
-python ./yacpm_cmake.py
+# Launch each time you modify the 'yacpm.toml'
+python ./yacpm.py -i
 ```
 
 ### On your CMake
 ```cmake
-# Dependencies
-include(_yacpm/yacpm.cmake)
-# ...
+add_executable(${PROJECT_NAME} main.cpp)
+include(${CMAKE_SOURCE_DIR}/.yacpm/yacpm.cmake)
 target_link_libraries(${YOUR_AWESOME_TARGET} PRIVATE ${YACPM_LINK_LIBRARIES})
 ```
 
 ### Just compile :)
 ```bash
-# Do each time you change your source :)
+# Just run the script with '-b <build_type>'
+python ./yacpm.py -b 'Release'
+# Or manually if the process is complex than this
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-cmake --build . -j 16 --config Debug
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . -j 16 --config Release
 ```
 
 ## Notes
