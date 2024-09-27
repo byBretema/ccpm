@@ -80,6 +80,10 @@ This script assumes that you have the following commands installed:
 - git
 
 In the roadmap:
-- [x] Other *git* providers (**the first iteration was github only**)
+- [x] Other *git* providers [^1]
 - [ ] Others VCS like *SVN* or *Hg*
 - [ ] Zip files
+- [ ] Automatic lib name and target gathering [^2]
+
+[^1]: The first iteration was github only.
+[^2]: For cases like glfw where its **find_package** is `glfw3` and its **link_library** is just `glfw` instead of `glfw::glfw` like the vast majority of the packages.
