@@ -89,5 +89,15 @@ cmake --build . -j 16 --config Release
 
 - Right now it **requires a tag** in order to not fall in the trap of use a development version of a lib.
 
+#### Lectures / Inspiration:
+
+- [It's Time To Do CMake Right](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
+
+- [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake)
+
+- [Bootstrap](https://github.com/corporateshark/bootstrapping)
+
+
 [^1]: The first iteration was github only.
 [^2]: For cases like glfw where its **find_package** is `glfw3` and its **link_library** is just `glfw` instead of `glfw::glfw` like the vast majority of the packages.
+
