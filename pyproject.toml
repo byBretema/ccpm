@@ -1,0 +1,19 @@
+[project]
+name = "yacpm"
+version = "0.0.1"
+authors = [
+]
+description = "Yet Another Cmake Package Manager"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: Other/Propietary License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "toml"
+]
+
+[project.scripts]
+yacpm = "yacpm.__main__:main"
