@@ -80,12 +80,9 @@ def process_package(repo_url, tag, defines, download_prefix, install_prefix):
         shutil.rmtree(install_dir)
     os.makedirs(install_dir, exist_ok=True)
 
-    install_dirs = []
-
     for build_type in ["Debug", "Release"]:
         build_dir_type = f"{build_dir}/{build_type}"
         install_dir_type = f"{install_dir}/{build_type}"
-        install_dirs.append(install_dir_type)
 
         # 2) Build the project
         if invalid_folder(build_dir_type):
@@ -128,7 +125,7 @@ def process_package(repo_url, tag, defines, download_prefix, install_prefix):
         ]
         run_command(install_cmd, cwd=build_dir_type, quiet=True)
 
-    return install_dirs
+    return install_dir
 
 
 def process_toml(root_dir, download_prefix, install_prefix):
@@ -165,8 +162,10 @@ def process_toml(root_dir, download_prefix, install_prefix):
         cmake_defines = [f"-D{define}" for define in defines]
 
         # Process the package
-        packages_path += process_package(
-            repo_url, tag, cmake_defines, download_prefix, install_prefix
+        packages_path.append(
+            process_package(
+                repo_url, tag, cmake_defines, download_prefix, install_prefix
+            )
         )
 
     return packages_path
@@ -179,21 +178,23 @@ def gen_cmake_script(root_dir, install_dir, packages_path):
     if os.path.exists(output_file) and os.path.isfile(output_file):
         os.remove(output_file)
 
-    cmake_script += ""
+    cmake_script = ""
 
-    #     cmake_script += """
-    # string(TOLOWER "${CMAKE_BUILD_TYPE}" CCPM_BUILD_TYPE_LOWER)
-    # if(BUILD_TYPE_LOWER MATCHES "debug")
-    #     SET(CCPM_BUILD_ID Debug)
-    # else()
-    #     SET(CCPM_BUILD_ID Release)
-    # endif()
-    # """
+    cmake_script += """
+string(TOLOWER "${CMAKE_BUILD_TYPE}" CCPM_BUILD_TYPE_LOWER)
+if(BUILD_TYPE_LOWER MATCHES "debug")
+    SET(CCPM_BUILD_ID Debug)
+else()
+    SET(CCPM_BUILD_ID Release)
+endif()
+"""
 
     cmake_script += "\n# Add to prefix path\n"
     for pkg_path in packages_path:
         pkg_path_cmake = pkg_path.replace(root_dir, "${CMAKE_SOURCE_DIR}")
-        cmake_script += f'list(APPEND CMAKE_PREFIX_PATH "{pkg_path_cmake}")\n'
+        cmake_script += (
+            f'list(APPEND CMAKE_PREFIX_PATH "{pkg_path_cmake}/${{CCPM_BUILD_ID}}")\n'
+        )
 
     # cmake_script += f"\n# Find packages\n"
     # for pkg_name in PACKAGES_NAMES:
@@ -274,10 +275,17 @@ def main():
     )
     parser.add_argument(
         "-b",
-        "--build-type",
-        type=str,
-        default="",
-        help="Specify build type: Debug or Release (case-insensitive)",
+        "--build",
+        action="store_true",
+        default=False,
+        help="Specify if you want to build your CMakeList.txt (default Debug)",
+    )
+    parser.add_argument(
+        "-r",
+        "--release",
+        action="store_true",
+        default=False,
+        help="If build process is requested, build type will be Release",
     )
 
     # Check cli commands
@@ -299,11 +307,8 @@ def main():
             f"Invalid path, folder doesn't exist or not contains a '{PREFIX}.toml' file"
         )
 
-    a_build_type = args.build_type
-    if a_build_type.lower() not in ["", "debug", "release"]:
-        parser.error(
-            "Invalid build type specified. Must be 'Debug' or 'Release' (case-insensitive)"
-        )
+    a_build = args.build
+    a_build_type = "Release" if args.release else "Debug"
 
     home_dir = os.path.expanduser("~").replace("\\", "/")
     download_dir_prefix = f"{home_dir}/.{PREFIX}"
@@ -333,7 +338,7 @@ def main():
 
     # BUILD CURRENT PROJECT ###############################################
 
-    if a_build_type != "":
+    if a_build:
         do_project_build(root_dir, project_build_dir, a_build_type)
         print()
 

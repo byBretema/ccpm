@@ -65,7 +65,7 @@ target_link_libraries(${AWESOME_TARGET} PRIVATE ${CCPM_LIB_fmt})         # For m
 ### 🛠️ Donwload, Build and Install packages
 
 ```bash
-ccpm -i   # To run download+build+installa process (only needed if you change the .toml file)
+ccpm -i   # To run download+build+install process (only needed if you change the .toml file)
 ccpm -b   # Builds the main 'CMakeLists.txt' (by default in debug, add -r for release)
 ```
 
