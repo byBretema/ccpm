@@ -355,7 +355,15 @@ def main():
             print()
 
     except KeyboardInterrupt:
-        print(f"\n[{PREFIX.upper()}] :: User interrupts execution!\n")
+        print(f"\n[{PREFIX.upper()}] :: ERR :: User interrupts execution!\n")
+    except PermissionError:
+        print(
+            f"\n[{PREFIX.upper()}] :: ERR :: Some files are in use, can't run the process!\n"
+        )
+    except:
+        print(
+            f"\n[{PREFIX.upper()}] :: ERR :: Something went wrong, please try again!\n"
+        )
 
 
 if __name__ == "__main__":
