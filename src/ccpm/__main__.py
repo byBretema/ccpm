@@ -8,6 +8,7 @@ import hashlib
 from urllib.parse import urlparse
 
 PREFIX = "ccpm"
+VERBOSE = False
 
 
 def invalid_folder(path):
@@ -123,7 +124,7 @@ def process_package(repo_url, tag, defines, download_prefix, install_prefix):
             "--prefix",
             install_dir_type,
         ]
-        run_command(install_cmd, cwd=build_dir_type, quiet=True)
+        run_command(install_cmd, cwd=build_dir_type, quiet=(not VERBOSE))
 
     return install_dir
 
@@ -182,7 +183,7 @@ def gen_cmake_script(root_dir, install_dir, packages_path):
 
     cmake_script += """
 string(TOLOWER "${CMAKE_BUILD_TYPE}" CCPM_BUILD_TYPE_LOWER)
-if(BUILD_TYPE_LOWER MATCHES "debug")
+if(CCPM_BUILD_TYPE_LOWER MATCHES "debug")
     SET(CCPM_BUILD_ID Debug)
 else()
     SET(CCPM_BUILD_ID Release)
@@ -222,7 +223,7 @@ endif()
 
 
 def do_project_build(root_dir, project_build_dir, build_type):
-    print(f"[{PREFIX.upper()}] :: Building current project")
+    print(f"[{PREFIX.upper()}] :: Building current project : {build_type}")
     run_command(
         [
             "cmake",
@@ -247,100 +248,114 @@ def do_project_build(root_dir, project_build_dir, build_type):
 
 
 def main():
+    try:
+        # ARGS ################################################################
 
-    # ARGS ################################################################
-
-    # Define arguments
-    parser = argparse.ArgumentParser(description="Manage your Cmake project")
-    parser.add_argument(
-        "-p",
-        "--path",
-        type=str,
-        default=".",
-        help=f"Where the {PREFIX}.toml is and install will be",
-    )
-    parser.add_argument(
-        "-c",
-        "--clear",
-        action="store_true",
-        default=False,
-        help="Clear build and external dependencies",
-    )
-    parser.add_argument(
-        "-i",
-        "--install",
-        action="store_true",
-        default=False,
-        help="Install dependencies (not needed if you don't change the TOML)",
-    )
-    parser.add_argument(
-        "-b",
-        "--build",
-        action="store_true",
-        default=False,
-        help="Specify if you want to build your CMakeList.txt (default Debug)",
-    )
-    parser.add_argument(
-        "-r",
-        "--release",
-        action="store_true",
-        default=False,
-        help="If build process is requested, build type will be Release",
-    )
-
-    # Check cli commands
-    if run_command_silent_unchecked("cmake --version") != 0:
-        parser.error("Install CMake first")
-
-    if run_command_silent_unchecked("git --version") != 0:
-        parser.error("Install Git first")
-
-    # Parse arguments
-    args = parser.parse_args()
-
-    a_clear = args.clear
-    a_install = args.install
-
-    a_path = args.path
-    if invalid_folder(a_path) or (not os.path.exists(f"{a_path}/{PREFIX}.toml")):
-        parser.error(
-            f"Invalid path, folder doesn't exist or not contains a '{PREFIX}.toml' file"
+        # Define arguments
+        parser = argparse.ArgumentParser(description="Manage your Cmake project")
+        parser.add_argument(
+            "-p",
+            "--path",
+            type=str,
+            default=".",
+            help=f"Where the {PREFIX}.toml is and install will be",
+        )
+        parser.add_argument(
+            "-c",
+            "--clear",
+            action="store_true",
+            default=False,
+            help="Clear build and external dependencies",
+        )
+        parser.add_argument(
+            "-i",
+            "--install",
+            action="store_true",
+            default=False,
+            help="Install dependencies (not needed if you don't change the TOML)",
+        )
+        parser.add_argument(
+            "-b",
+            "--build",
+            action="store_true",
+            default=False,
+            help="Specify if you want to build your CMakeList.txt (default Debug)",
+        )
+        parser.add_argument(
+            "-r",
+            "--release",
+            action="store_true",
+            default=False,
+            help="If build process is requested, build type will be Release",
+        )
+        parser.add_argument(
+            "-v",
+            "--verbose",
+            action="store_true",
+            default=False,
+            help="Doesn't hide any output",
         )
 
-    a_build = args.build
-    a_build_type = "Release" if args.release else "Debug"
+        # Check cli commands
+        if run_command_silent_unchecked("cmake --version") != 0:
+            parser.error("Install CMake first")
 
-    home_dir = os.path.expanduser("~").replace("\\", "/")
-    download_dir_prefix = f"{home_dir}/.{PREFIX}"
+        if run_command_silent_unchecked("git --version") != 0:
+            parser.error("Install Git first")
 
-    root_dir = os.path.abspath(a_path).replace("\\", "/")
-    install_dir_prefix = f"{root_dir}/.{PREFIX}"
+        # Parse arguments
+        args = parser.parse_args()
 
-    project_build_dir = f"{root_dir}/build"
-    print(f"project_build_dir :: {project_build_dir}")
+        global VERBOSE
+        VERBOSE = args.verbose
 
-    # CLEAR ALL ###########################################################
+        a_clear = args.clear
+        a_install = args.install
 
-    # Deps
-    if a_clear and not invalid_folder(install_dir_prefix):
-        shutil.rmtree(install_dir_prefix)
+        a_path = args.path
+        if invalid_folder(a_path) or (not os.path.exists(f"{a_path}/{PREFIX}.toml")):
+            parser.error(
+                f"Invalid path, folder doesn't exist or not contains a '{PREFIX}.toml' file"
+            )
 
-    # Build
-    if a_clear and not invalid_folder(project_build_dir):
-        shutil.rmtree(project_build_dir)
+        a_build = args.build
+        a_build_type = "Release" if args.release else "Debug"
 
-    # INSTALL DEPS ########################################################
+        home_dir = os.path.expanduser("~").replace("\\", "/")
+        download_dir_prefix = f"{home_dir}/.{PREFIX}"
 
-    if a_install:
-        packages_path = process_toml(root_dir, download_dir_prefix, install_dir_prefix)
-        gen_cmake_script(root_dir, install_dir_prefix, packages_path)
-        print()
+        root_dir = os.path.abspath(a_path).replace("\\", "/")
+        install_dir_prefix = f"{root_dir}/.{PREFIX}"
 
-    # BUILD CURRENT PROJECT ###############################################
+        project_build_dir = f"{root_dir}/build/{a_build_type}"
 
-    if a_build:
-        do_project_build(root_dir, project_build_dir, a_build_type)
-        print()
+        # CLEAR ALL ###########################################################
+
+        # Deps
+        if a_clear and not invalid_folder(install_dir_prefix):
+            shutil.rmtree(install_dir_prefix)
+
+        # Build
+        if a_clear and not invalid_folder(project_build_dir):
+            shutil.rmtree(project_build_dir)
+
+        # INSTALL DEPS ########################################################
+
+        if a_install:
+            packages_path = process_toml(
+                root_dir, download_dir_prefix, install_dir_prefix
+            )
+            gen_cmake_script(root_dir, install_dir_prefix, packages_path)
+            print()
+
+        # BUILD CURRENT PROJECT ###############################################
+
+        if a_build:
+            do_project_build(root_dir, project_build_dir, a_build_type)
+            print()
+
+    except KeyboardInterrupt:
+        print(f"\n[{PREFIX.upper()}] :: User interrupts execution!\n")
 
 
 if __name__ == "__main__":
