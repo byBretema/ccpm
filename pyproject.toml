@@ -1,19 +1,29 @@
 [project]
-name = "yacpm"
+name = "ccpm"
 version = "0.0.1"
-authors = [
-]
-description = "Yet Another Cmake Package Manager"
+
+authors = [{ name = "Daniel Brétema", email = "byBretema@gmail.com" }]
+
+description = "Custom Cmake Package Manager - Trying to bring 'npm' and 'pip' vibes to C++ (or any cmake project)"
+keywords = ["cmake", "cpp", "c++", "package", "manager", "package-manager"]
+
 readme = "README.md"
+license = { file = "LICENSE.txt" }
+
 requires-python = ">=3.8"
+dependencies = ["toml"]
+
 classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
     "Programming Language :: Python :: 3",
-    "License :: Other/Propietary License",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = [
-    "toml"
-]
+
+[project.urls]
+Repository = "https://github.com/byBretema/ccpm.git"
 
 [project.scripts]
-yacpm = "yacpm.__main__:main"
+ccpm = "ccpm.__main__:main"

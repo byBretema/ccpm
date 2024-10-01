@@ -1,28 +1,34 @@
 cmake_minimum_required(VERSION 3.25)
 
 # Project
-project(YACPM_Example
+project(example
     LANGUAGES CXX
     VERSION 0.1.0
-    DESCRIPTION "YACPM - Yet Another Cmake Package Manager"
-    HOMEPAGE_URL "https://github.com/byBretema/yacpm")
+    DESCRIPTION "CCPM - Custom Cmake Package Manager"
+    HOMEPAGE_URL "https://github.com/byBretema/ccpm")
 
-# Must compile with C++20, no extensions
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# Build type
+# Build as Debug by default
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
+    set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 # Target
 add_executable(${PROJECT_NAME} main.cpp)
 
+set_target_properties(${PROJECT_NAME}
+    PROPERTIES
+        CMAKE_CXX_EXTENSIONS OFF
+        CMAKE_CXX_VISIBILITY_PRESET hidden
+        CMAKE_VISIBILITY_INLINES_HIDDEN ON
+        CMAKE_EXPORT_COMPILE_COMMANDS ON
+)
+
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+
 # Dependencies
-include(${CMAKE_SOURCE_DIR}/.yacpm/yacpm.cmake)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${YACPM_LINK_LIBRARIES})
+include(${CMAKE_SOURCE_DIR}/.ccpm/ccpm.cmake)
+
+find_package(fmt REQUIRED)
+find_package(glm REQUIRED)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt glm::glm)

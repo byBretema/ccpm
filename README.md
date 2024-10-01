@@ -1,10 +1,10 @@
-# 📦 YACPM - Yet Another Cmake Package Manager
+# 📦 CCPM - Custom Cmake Package Manager
 
-![YACPM Logo](https://i.imgur.com/A2KPcdK.jpeg)
+![CCPM Logo](https://i.imgur.com/A2KPcdK.jpeg)
 
 🧑‍💻 Are you tired of watching time fade away as CMake recompiles Assimp for the sixth time today just because you had to do a rebuild of your own code?
 
-🖖 Have you find yourself writing below code manually?
+🖖 Do you have your CMakeLists.txt full of `add_subdirectory` for code that is not yours?
 
 ```cmake
 add_subdirectory(third_party/fmt)
@@ -18,11 +18,17 @@ target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
 
 ## 🌊 Flow
 
+### 🚀 Install the tool
+
+```bash
+pip install ccpm
+```
+
 ### 📃 Define your dependencies
 
-> The below example will install fmt, glfw and glm with your custom defines.
+> The below example will install fmt, glfw and glm with custom defines.
 
-Create a simple `yacpm.toml` similar to this one:
+Create a simple `ccpm.toml` ***in the same folder*** of main 'CMakeLists.txt' similar to this one:
 
 ```toml
 [[git]]
@@ -41,34 +47,29 @@ tag = "1.0.1"
 defines = ["GLM_BUILD_TESTS=OFF", "GLM_ENABLE_CXX_20=ON"]
 ```
 
-### 🛠️ Donwload, Build and Install packages
-
-```bash
-# Requires the toml package : pip install toml
-# Launch each time you modify the 'yacpm.toml'
-python ./yacpm.py . -i
-```
-
 ### ✍️ On your CMake
 
 ```cmake
-add_executable(${PROJECT_NAME} main.cpp)
-include(${CMAKE_SOURCE_DIR}/.yacpm/yacpm.cmake)
-target_link_libraries(${YOUR_AWESOME_TARGET} PRIVATE ${YACPM_LINK_LIBRARIES})
+include(${CMAKE_SOURCE_DIR}/.ccpm/ccpm.cmake)  # This resolves modulepaths
+add_executable(${AWESOME_TARGET} main.cpp)
+
+# I'm working on simplify this stage but there is many differences between some packages
+find_packge(fmt REQUIRED)
+target_link_libraries(${AWESOME_TARGET} PRIVATE fmt::fmt)
+
+# Goal syntax
+include(${CMAKE_SOURCE_DIR}/.ccpm/ccpm.cmake)  # This will include the 'find_packge(fmt REQUIRED)'
+target_link_libraries(${AWESOME_TARGET} PRIVATE ${CCPM_LINK_LIBRARIES})  # To include all of them
+target_link_libraries(${AWESOME_TARGET} PRIVATE ${CCPM_LIB_fmt})         # For more granularity
 ```
 
-### ✨ Just compile
+### 🛠️ Donwload, Build and Install packages
 
 ```bash
-# Opt1 - Just run the script with '-b <build_type>'
-python ./yacpm.py . -b 'Release'
-
-# Opt2 - manually if the process is complex than this
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build . -j 16 --config Release
+ccpm -i   # To run download+build+installa process (only needed if you change the .toml file)
+ccpm -b   # Builds the main 'CMakeLists.txt' (by default in debug, add -r for release)
 ```
+
 
 ## 📝 Notes
 
@@ -85,10 +86,6 @@ cmake --build . -j 16 --config Release
 - [ ] Zip files
 - [ ] Others VCS like *SVN* or *Hg*
 
-#### Open to discussion:
-
-- Right now it **requires a tag** in order to not fall in the trap of use a development version of a lib.
-
 #### Lectures / Inspiration:
 
 - [It's Time To Do CMake Right](https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/)
@@ -100,19 +97,4 @@ cmake --build . -j 16 --config Release
 
 [^1]: The first iteration was github only.
 [^2]: For cases like glfw where its **find_package** is `glfw3` and its **link_library** is just `glfw` instead of `glfw::glfw` like the vast majority of the packages.
-
-# Installation
-
-```
-python3 -m venv .env
-source .env/bin/activate
-
-pip install build
-
-python3 -m build
-
-pip install dist/*.whl --force-reinstall
-
-yacpm --help
-```
 

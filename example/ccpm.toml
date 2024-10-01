@@ -5,15 +5,6 @@ tag = "11.0.2"
 defines = ["FMT_TEST=OFF", "FMT_DOC=OFF"]
 
 [[git]]
-repo_url = "https://github.com/glfw/glfw"
-tag = "3.4"
-defines = [
-    "GLFW_BUILD_DOCS=OFF",
-    "GLFW_BUILD_TESTS=OFF",
-    "GLFW_BUILD_EXAMPLES=OFF",
-]
-
-[[git]]
 repo_url = "https://github.com/g-truc/glm"
 tag = "1.0.1"
 defines = ["GLM_BUILD_TESTS=OFF", "GLM_ENABLE_CXX_20=ON"]
