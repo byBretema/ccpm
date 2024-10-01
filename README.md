@@ -14,7 +14,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE fmt::fmt)
 
 ⚡ **No worries, we’ve got the solution right here!**
 
-> Feel free to use this repository as template to init your awesome new project 😎
 
 ## 🌊 Flow
 
