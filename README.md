@@ -95,5 +95,6 @@ ccpm -b   # Builds the main 'CMakeLists.txt' (by default in debug, add -r for re
 
 
 [^1]: The first iteration was github only.
+
 [^2]: For cases like glfw where its **find_package** is `glfw3` and its **link_library** is just `glfw` instead of `glfw::glfw` like the vast majority of the packages.
 
