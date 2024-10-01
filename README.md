@@ -101,3 +101,18 @@ cmake --build . -j 16 --config Release
 [^1]: The first iteration was github only.
 [^2]: For cases like glfw where its **find_package** is `glfw3` and its **link_library** is just `glfw` instead of `glfw::glfw` like the vast majority of the packages.
 
+# Installation
+
+```
+python3 -m venv .env
+source .env/bin/activate
+
+pip install build
+
+python3 -m build
+
+pip install dist/*.whl --force-reinstall
+
+yacpm --help
+```
+

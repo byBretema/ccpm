@@ -43,7 +43,7 @@ def extract_repo_name(repo_url):
         path = path[:-4]
     return path
 
-def process_package(repo_url, tag, defines):
+def process_package(repo_url, tag, defines,build_dir, install_dir):
 
     repo_name = extract_repo_name(repo_url)
 
@@ -51,10 +51,10 @@ def process_package(repo_url, tag, defines):
     PACKAGES_NAMES.add(project_name)
 
     project_and_tag = f'{project_name}-{tag}'
-    source_dir  = f'{BUILD_DIR_PREFIX}/{project_and_tag}/src'
-    build_dir   = f'{BUILD_DIR_PREFIX}/{project_and_tag}/build'
+    source_dir  = f'{build_dir}/{project_and_tag}/src'
+    build_dir   = f'{build_dir}/{project_and_tag}/build'
 
-    install_dir = f'{INSTALL_DIR_PREFIX}/{project_and_tag}'
+    install_dir = f'{install_dir}/{project_and_tag}'
     PACKAGES_PATHS.add(install_dir)
 
     print(f'\n[{PREFIX.upper()}] :: {project_and_tag} : {" ".join(defines)}')
@@ -93,9 +93,10 @@ def process_package(repo_url, tag, defines):
         install_cmd = ['cmake', '--install', '.', '--config', build_type, '--prefix', install_dir]
         run_command(install_cmd, cwd=build_dir_type, quiet=True)
 
-def process_toml():
+def process_toml(cwd, build_dir, install_dir):
     # Load packages from TOML file
-    toml_file = f'{ROOT_DIR}/yacpm.toml'
+    toml_file = f'{cwd}/yacpm.toml'
+    print(toml_file)
     if not os.path.exists(toml_file):
         print(f'Error: TOML file "{toml_file}" not found.')
         sys.exit(1)
@@ -125,11 +126,11 @@ def process_toml():
         cmake_defines = [f"-D{define}" for define in defines]
 
         # Process the package
-        process_package(repo_url, tag, cmake_defines)
+        process_package(repo_url, tag, cmake_defines, build_dir, install_dir)
 
-def gen_cmake_script():
+def gen_cmake_script(install_dir):
 
-    output_file = f"{INSTALL_DIR_PREFIX}/{PREFIX}.cmake"
+    output_file = f"{install_dir}/{PREFIX}.cmake"
 
     if os.path.exists(output_file) and os.path.isfile(output_file):
         os.remove(output_file)
@@ -165,22 +166,22 @@ def gen_cmake_script():
     with open(output_file, "w") as f:
         f.write(cmake_script)
 
-def get_dependencies():
-    process_toml()
-    gen_cmake_script()
+def get_dependencies(cwd,build_dir, install_dir):
+    process_toml(cwd, build_dir, install_dir)
+    gen_cmake_script(install_dir)
 
-def do_project_build(project_build_dir, build_type):
+def do_project_build(src_dir, project_build_dir, build_type):
     print('[YACPM] :: Building current project')
-    run_command(['cmake', '-B', project_build_dir, f'-DCMAKE_BUILD_TYPE={build_type}'])
-    run_command(['cmake', '--build', project_build_dir, '-j', '16', '--config', build_type])
+    run_command(['cmake', '-B', project_build_dir, f'-DCMAKE_BUILD_TYPE={build_type}'], src_dir)
+    run_command(['cmake', '--build', project_build_dir, '-j', '16', '--config', build_type], src_dir)
 
-if __name__ == '__main__':
+def main():
 
     # ARGS ################################################################
 
     # Define arguments
     parser = argparse.ArgumentParser(description='Manage your Cmake project')
-    parser.add_argument('path', help='Where the yacpm.toml is and install will be')
+    parser.add_argument('-p', '--path', help='Where the yacpm.toml is and install will be')
     parser.add_argument('-c', '--clear', action='store_true', default=False, help='Clear build and external dependencies')
     parser.add_argument('-i', '--install', action='store_true', default=False, help='Install dependencies (not needed if you don\'t change the TOML)')
     parser.add_argument('-b', '--build-type', type=str, default="", help='Specify build type: Debug or Release (case-insensitive)')
@@ -216,11 +217,14 @@ if __name__ == '__main__':
     # INSTALL DEPS ########################################################
 
     if a_install:
-        get_dependencies()
+        get_dependencies(ROOT_DIR,project_build_dir, INSTALL_DIR_PREFIX)
         print()
 
     # BUILD CURRENT PROJECT ###############################################
 
     if a_build_type != "":
-        do_project_build(project_build_dir, a_build_type)
+        do_project_build(ROOT_DIR, project_build_dir, a_build_type)
         print()
+
+if __name__ == '__main__':
+    main()
